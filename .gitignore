@@ -4,3 +4,4 @@ __pycache__/
 venv/
 *.pem
 .DS_Store
+test_integration.py
