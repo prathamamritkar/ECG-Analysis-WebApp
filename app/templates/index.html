@@ -3,38 +3,277 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Cloud-based ECG analysis portal for patient monitoring and cardiac health assessment.">
+    <meta name="theme-color" content="#0066cc">
     <title>ECG Analysis Portal</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            background-color: #f4f4f4;
-        }
-        h1 {
-            color: #333;
-        }
-        .status {
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-        }
-        .healthy {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .active {
-            background-color: #cfe2ff;
-            color: #084298;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <h1>Welcome to the Cloud-Based ECG Analysis Portal</h1>
-    <div class="status active">
-        <p><strong>Patient Data Syncing:</strong> Active</p>
-    </div>
-    <div class="status healthy">
-        <p><strong>Server Status:</strong> Healthy</p>
-    </div>
+    <!-- HEADER & NAVIGATION -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    ECG Portal
+                </div>
+                <nav>
+                    <ul class="nav">
+                        <li><a href="#" class="nav-link active">Dashboard</a></li>
+                        <li><a href="#" class="nav-link">Upload</a></li>
+                        <li><a href="#" class="nav-link">Patients</a></li>
+                        <li><a href="#" class="nav-link">Reports</a></li>
+                        <li><a href="#" class="nav-link">Settings</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+        <div class="container">
+            <!-- ALERTS CONTAINER -->
+            <div id="alertContainer"></div>
+
+            <!-- HERO SECTION -->
+            <section class="hero">
+                <h1 class="hero-title">Cardiac Health Monitoring Dashboard</h1>
+                <p class="hero-subtitle">Advanced ECG analysis and patient data management system</p>
+            </section>
+
+            <!-- SYSTEM STATUS -->
+            <section class="card mb-lg">
+                <div class="card-header">
+                    <h2 class="card-title">System Status</h2>
+                </div>
+                <div class="card-body">
+                    <div class="grid gap-lg" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                        <div id="serverStatus" class="status-badge status-success">
+                            <span class="status-dot"></span>
+                            Server: Healthy
+                        </div>
+                        <div id="databaseStatus" class="status-badge status-success">
+                            <span class="status-dot"></span>
+                            Database: Connected
+                        </div>
+                        <div id="syncStatus" class="status-badge status-success">
+                            <span class="status-dot"></span>
+                            Sync: Active
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STATISTICS -->
+            <section class="mb-lg">
+                <h2>Statistics Overview</h2>
+                <div id="statsContainer" class="grid grid-3 gap-lg">
+                    <div class="stat-item">
+                        <div class="stat-label">Total Records</div>
+                        <div class="stat-value">0</div>
+                    </div>
+                    <div class="stat-item success">
+                        <div class="stat-label">Normal</div>
+                        <div class="stat-value">0</div>
+                    </div>
+                    <div class="stat-item warning">
+                        <div class="stat-label">Anomalies</div>
+                        <div class="stat-value">0</div>
+                    </div>
+                    <div class="stat-item danger">
+                        <div class="stat-label">Critical</div>
+                        <div class="stat-value">0</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ECG FILE UPLOAD SECTION -->
+            <section class="card mb-lg">
+                <div class="card-header">
+                    <h2 class="card-title">Upload ECG Data</h2>
+                </div>
+                <div class="card-body">
+                    <form id="uploadForm">
+                        <div class="grid grid-2 gap-lg">
+                            <div>
+                                <div class="form-group">
+                                    <label for="patientName">Patient Name</label>
+                                    <input type="text" id="patientName" name="patientName" placeholder="Enter patient name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="patientId">Patient ID</label>
+                                    <input type="text" id="patientId" name="patientId" placeholder="e.g., P001234">
+                                </div>
+                                <div class="form-group">
+                                    <label for="scanDate">Scan Date</label>
+                                    <input type="date" id="scanDate" name="scanDate" required>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="form-group">
+                                    <label for="ecgFile">ECG File (CSV/TXT)</label>
+                                    <input type="file" id="ecgFile" name="ecgFile" accept=".csv,.txt,.dat" required>
+                                    <small class="text-gray" style="display: block; margin-top: 0.5rem;">
+                                        Supported formats: CSV, TXT, DAT (max 10MB)
+                                    </small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="notes">Clinical Notes</label>
+                                    <textarea id="notes" name="notes" placeholder="Add any relevant clinical observations..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="filePreview"></div>
+
+                        <div class="card-footer">
+                            <button type="reset" class="btn btn-secondary">Clear</button>
+                            <button type="submit" class="btn btn-primary">
+                                <span>Upload & Analyze</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- RECENT RECORDS -->
+            <section class="card mb-lg">
+                <div class="card-header">
+                    <h2 class="card-title">Recent ECG Records</h2>
+                    <button class="btn btn-small btn-outline">Export</button>
+                </div>
+                <div class="card-body">
+                    <div id="recordsContainer">
+                        <p class="text-gray text-center" style="padding: 2rem;">
+                            No records found. Upload ECG files to get started.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FEATURES SECTION -->
+            <section class="mb-lg">
+                <h2>Key Features</h2>
+                <div class="grid grid-3 gap-lg">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title" style="margin: 0;">📊 Real-time Analysis</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>Instant ECG signal processing and cardiac rhythm detection with advanced algorithms.</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title" style="margin: 0;">🔒 Secure Storage</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>HIPAA-compliant encrypted storage for sensitive patient data and medical records.</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title" style="margin: 0;">📈 Comprehensive Reports</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>Detailed analysis reports with visual ECG waveforms and diagnostic recommendations.</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title" style="margin: 0;">🔔 Smart Alerts</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>Automated anomaly detection and critical alert notifications for urgent cases.</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title" style="margin: 0;">👥 Multi-user Access</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>Role-based access control for doctors, nurses, and administrative staff.</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title" style="margin: 0;">📱 Mobile Ready</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>Responsive design works seamlessly on tablets and mobile devices.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- QUICK STATS -->
+            <section class="card mb-lg">
+                <div class="card-header">
+                    <h2 class="card-title">System Metrics</h2>
+                </div>
+                <div class="card-body">
+                    <div class="grid grid-2 gap-lg">
+                        <div>
+                            <h4>Server Performance</h4>
+                            <div style="background: var(--color-gray-100); height: 8px; border-radius: 4px; overflow: hidden; margin: 0.5rem 0;">
+                                <div style="background: var(--color-success); height: 100%; width: 95%;"></div>
+                            </div>
+                            <p class="text-sm text-gray">CPU Usage: 95%</p>
+                        </div>
+                        <div>
+                            <h4>Database Capacity</h4>
+                            <div style="background: var(--color-gray-100); height: 8px; border-radius: 4px; overflow: hidden; margin: 0.5rem 0;">
+                                <div style="background: var(--color-warning); height: 100%; width: 78%;"></div>
+                            </div>
+                            <p class="text-sm text-gray">Storage: 78%</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>About</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Careers</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#">Documentation</a></li>
+                        <li><a href="#">API Reference</a></li>
+                        <li><a href="#">Support</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">HIPAA Compliance</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 ECG Analysis Portal. All rights reserved. | Made with ♥ for cardiac care</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
